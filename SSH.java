@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.*;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -9,7 +10,7 @@ public class SSH{
 
         //Database
 
-        //Below is what I used to test the code
+        //The line below is what I used to test the code
         int student_id = 1;
         List<Map<String, Object>> rawRecords = Database(student_id);
 
@@ -78,28 +79,32 @@ public class SSH{
     }
 
 
-    //Function that returns a list of the presence matrices
+    //Function that cleans data and returns a list of presence matrices
     private static List<int[][]> cleanData(List<Map<String, Object>> rawRecords) {
 
-        //Stores records by week
+        //To store data by week
         Map<Integer, List<Map<String, Object>>> weeklyData = new TreeMap<>();
 
         //Using the local machine's date as a benchmark
         LocalDateTime now = LocalDateTime.now();
+        LocalDate referenceMonday = now.with(DayOfWeek.MONDAY).toLocalDate();
 
         //Iterate through each record and note which week it belongs to
         for (Map<String, Object> record : rawRecords) {
-            LocalDateTime timestamp = (LocalDateTime) record.get("timestamp");
 
-            // Calculate week index, meaning how far away the week is from the current(0 = most recent week)
-            int weekIndex = (int) ChronoUnit.WEEKS.between(timestamp, now);
+            //Look at the date retrieved from the timestamp and go to the Monday of that week
+            LocalDateTime timestamp = (LocalDateTime) record.get("timestamp");
+            LocalDate recordMonday = timestamp.toLocalDate().with(DayOfWeek.MONDAY);
+
+            //Calculate the weeks between local date and the date retrieved from the record
+            long weekIndex = ChronoUnit.WEEKS.between(recordMonday, referenceMonday);
+
             //Adding each week's worth of data to a tree map
-            weeklyData.putIfAbsent(weekIndex, new ArrayList<>());
-            weeklyData.get(weekIndex).add(record);
+            weeklyData.putIfAbsent((int)weekIndex, new ArrayList<>());
+            weeklyData.get((int)weekIndex).add(record);
         }
 
-
-        //To create the presenceMatrices
+        //To create the list of presence matrices
         List<int[][]> presenceMatrices = new ArrayList<>();
 
         //Iterate through the tree map and form a presence matrix for each week
@@ -112,6 +117,7 @@ public class SSH{
         return presenceMatrices;
     }
 
+    //Function to create a presence matrix
     private static int[][] createMatrix(List<Map<String, Object>> data) {
         int[][] presenceMatrix = new int[7][24];
         Integer entryTime = null;
@@ -130,29 +136,65 @@ public class SSH{
             if("enter".equalsIgnoreCase(action)){
                 entryTime = minutes;
                 day = dayOfWeek;
-            //When exit is detected, it checks if there is a previous "enter" and that they belong to the same day
+
+            //When exit is detected
             } else if ("exit".equalsIgnoreCase(action)) {
-                if(entryTime != null && day == dayOfWeek){
-                    markPresence(presenceMatrix, day, entryTime, minutes);
+                //If there is no previous entry time, assume the entry belongs to the previous day and start from 00:00
+                if(entryTime == null){
+                    markPresence(presenceMatrix, dayOfWeek, 0, minutes);
+
+                //If there is a previous entry time
+                } else {
+                    if(day == dayOfWeek) {
+                        //Case where enter and exit occur on the same day
+                        markPresence(presenceMatrix, day, entryTime, minutes);
+                    } else {
+                        //Case where enter and exit occur on different days
+                        markPresence(presenceMatrix, day, entryTime, 1440);
+                        markPresence(presenceMatrix, dayOfWeek, 0, minutes);
+                    }
                     entryTime = null;
+
                 }
             }
+        }
+
+
+        //Case where the user is inside after the last record
+        if(entryTime != null) {
+            markPresence(presenceMatrix, day, entryTime, 1440);
         }
 
         return presenceMatrix;
     }
 
+    //Function that marks a 1 in timeslots where the user is home
     private static void markPresence(int[][] matrix, DayOfWeek dayOfWeek, int start, int end) {
         //Represent each day of the week as an index from 0 to 6 (0 = Monday, 6 = Sunday)
         int dayIndex = dayOfWeek.getValue() - 1;
 
-        //Iterates through entry and exit time, putting 1's between start time and end time
-        for (int time = start; time < end; time++) {
-            int hourSlot = time / 60;
-            if (hourSlot >= 0 && hourSlot < 24) {
-                matrix[dayIndex][hourSlot] = 1;
+        int startHour = start / 60;
+        int endHour = end / 60;
+
+        //Iterates from start to end hour of the entry and exit pair
+        for (int hour = startHour; hour <= endHour; hour++) {
+
+            //Start and end of the timeslot interval in minutes
+            int hourStart = hour * 60;
+            int hourEnd = hourStart + 60;
+
+            // Determine how long the user was at home for (the overlap within the interval)
+            int overlapStart = Math.max(start, hourStart); // Latest start time
+            int overlapEnd = Math.min(end, hourEnd); // Earliest end time
+            int overlap = overlapEnd - overlapStart;
+
+            // Mark the slot with a 1 if overlap >= 30 minutes (if the user was home for 30+ minutes)
+            if (overlap >= 30) {
+                matrix[dayIndex][hour] = 1;
             }
         }
+
+
     }
 
     private static void calculateProbabilities() {
