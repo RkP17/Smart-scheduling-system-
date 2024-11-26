@@ -18,11 +18,12 @@ public class SSH{
 
         // Process the data
         List<int[][]> presenceMatrices = cleanData(rawRecords);
-        System.out.println(presenceMatrices);
+        
 
         // caclulate the probaility 
         double[][] probabilities=calculate(presenceMatrices);
-        System.out.println(probabilities);
+        printProbabilityMatrix(probabilities);
+        
 
         //store the data 
         storeProbabilities(probabilities);
@@ -234,6 +235,19 @@ public class SSH{
         
 
     }
+
+        // Method to print the probability matrix
+    private static void printProbabilityMatrix(double[][] probabilities) {
+        System.out.println("Probability Matrix:");
+        for (int day = 0; day < 7; day++) {
+            System.out.print("Day " + (day + 1) + ": ");
+            for (int hour = 0; hour < 24; hour++) {
+                System.out.printf("%.2f ", probabilities[day][hour]);  // Print with 2 decimal places
+            }
+            System.out.println();
+        }
+    }
+
 
     private static void storeProbabilities(double[][] probabilities) {
 
