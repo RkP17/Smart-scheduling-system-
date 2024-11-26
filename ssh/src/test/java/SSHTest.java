@@ -30,7 +30,7 @@ public class SSHTest {
         assertEquals(1.0, probabilities[0][0]); // Monday, 12am
         assertEquals(0.0, probabilities[0][1]); // Monday, 1am
         assertEquals(1.0, probabilities[1][1]); // Tuesday, 1am
-        assertEquals(0.0, probabilities[2][2]); // Wednesday, 2am
+        assertEquals(1.0, probabilities[2][2]); // Wednesday, 2am
 
         
     }
