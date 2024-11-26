@@ -201,7 +201,7 @@ public class SSH{
 
     }
 
-    private static double[][] calculate(List<int[][]> presenceMatricies) {
+    public static double[][] calculate(List<int[][]> presenceMatricies) {
         // store the probabilities into a matrix 7x24
         double[][] probabilities= new double[7][24];
 
