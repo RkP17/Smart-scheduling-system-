@@ -18,10 +18,11 @@ public class SSH{
 
         // Process the data
         List<int[][]> presenceMatrices = cleanData(rawRecords);
-
+        System.out.println(presenceMatrices);
 
         // caclulate the probaility 
         double[][] probabilities=calculate(presenceMatrices);
+        System.out.println(probabilities);
 
         //store the data 
         storeProbabilities(probabilities);
@@ -55,8 +56,8 @@ public class SSH{
         List<Map<String, Object>> records = new ArrayList<>();
 
         //Seeting up the JDBC connection, put your own password for this
-        String username = "postgres";
-        String password = " ";
+        String username = "rajveerpatter";
+        String password = "password";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
@@ -72,6 +73,7 @@ public class SSH{
                     record.put("timestamp", resultSet.getTimestamp("timestamp_attr").toLocalDateTime());
                     record.put("action", resultSet.getString("action_attr"));
                     records.add(record);
+                    //System.out.println(record);
                 }
             }
 
