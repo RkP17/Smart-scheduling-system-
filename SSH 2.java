@@ -18,7 +18,7 @@ public class SSH{
         List<int[][]> presenceMatrices = cleanData(rawRecords);
 
         // caclulate the probaility 
-        calculate(presenceMatrices);
+        List<int[][]> probabilities=calculate(presenceMatrices);
 
         //store the data 
         storeProbabilities();
