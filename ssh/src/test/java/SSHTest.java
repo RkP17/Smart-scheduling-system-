@@ -7,8 +7,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import ssh.example.SSH;
-
 public class SSHTest {
     @Test
 
