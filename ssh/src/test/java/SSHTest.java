@@ -7,11 +7,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-<<<<<<< HEAD
-=======
 import ssh.example.SSH;
 
->>>>>>> main
+
 public class SSHTest {
     @Test
 
