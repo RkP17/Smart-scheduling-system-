@@ -34,7 +34,7 @@ public class SSH{
     }
 
     // SQL statements for the database (If we want to do it through here rather than the terminal)
-    private static List<Map<String, Object>> Database(int id) {
+    public static List<Map<String, Object>> Database(int id) {
         //Query to get up to 8 weeks worth of data, calculated by subtracting 8 weeks from most recent record
         String query = "WITH latest_date AS (" +
                 "    SELECT MAX(timestamp_attr) AS recent_time " +
@@ -87,7 +87,7 @@ public class SSH{
 
 
     //Function that cleans data and returns a list of presence matrices
-    private static List<int[][]> cleanData(List<Map<String, Object>> rawRecords) {
+    public static List<int[][]> cleanData(List<Map<String, Object>> rawRecords) {
 
         //To store data by week
         Map<Integer, List<Map<String, Object>>> weeklyData = new TreeMap<>();
@@ -125,7 +125,7 @@ public class SSH{
     }
 
     //Function to create a presence matrix
-    private static int[][] createMatrix(List<Map<String, Object>> data) {
+    public static int[][] createMatrix(List<Map<String, Object>> data) {
         int[][] presenceMatrix = new int[7][24];
         Integer entryTime = null;
         DayOfWeek day = null;
@@ -176,7 +176,7 @@ public class SSH{
     }
 
     //Function that marks a 1 in timeslots where the user is home
-    private static void markPresence(int[][] matrix, DayOfWeek dayOfWeek, int start, int end) {
+    public static void markPresence(int[][] matrix, DayOfWeek dayOfWeek, int start, int end) {
         //Represent each day of the week as an index from 0 to 6 (0 = Monday, 6 = Sunday)
         int dayIndex = dayOfWeek.getValue() - 1;
 

@@ -2,8 +2,10 @@
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +13,21 @@ import ssh.example.SSH;
 
 
 public class SSHTest {
+
+    //Testing the database
+    @Test
+    public void testDatabase(){
+        List<Map<String, Object>> result = SSH.Database(0);
+        LocalDateTime time = (LocalDateTime) result.get(0).get("timestamp");
+        LocalDateTime expected = LocalDateTime.parse("2024-11-18T07:30");
+        assertEquals(expected, time);
+
+        int end = result.size() - 1;
+        time = (LocalDateTime) result.get(end).get("timestamp");
+        expected = LocalDateTime.parse("2024-12-15T17:00");
+        assertEquals(expected, time);
+    }
+
     @Test
 
     public void testCalculate_singleWeek(){
