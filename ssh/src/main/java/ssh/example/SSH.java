@@ -22,7 +22,7 @@ public class SSH{
 
         // caclulate the probaility 
         double[][] probabilities=calculate(presenceMatrices);
-        //printProbabilityMatrix(probabilities);
+        printProbabilityMatrix(probabilities);
         
 
         //store the data 
@@ -235,7 +235,7 @@ public class SSH{
         
 
     }
-/* 
+
     // Method to print the probability matrix
     private static void printProbabilityMatrix(double[][] probabilities) {
         System.out.println("Probability Matrix:");
@@ -247,7 +247,7 @@ public class SSH{
             System.out.println();
         }
     }
-*/
+
 
     private static void storeProbabilities(double[][] probabilities) {
 
@@ -261,5 +261,4 @@ public class SSH{
 
 
 }
-
 
