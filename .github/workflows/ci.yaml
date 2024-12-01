@@ -23,7 +23,18 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin' 
-        java-version: '17'   
+        java-version: '17' 
+        
+    #cache the maven dependencies
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository  # Path to Maven's local repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}  # Unique cache key based on pom.xml
+        restore-keys: |
+          ${{ runner.os }}-maven-
+            
+
     #build the project with maven
     - name: Build with Maven
       run: 
