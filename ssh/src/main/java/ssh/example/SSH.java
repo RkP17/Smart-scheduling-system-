@@ -7,7 +7,7 @@ import java.util.*;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-public class SSH{
+public class ssh {
     public static void main(String[] args) {
 
         //Database
@@ -18,18 +18,18 @@ public class SSH{
 
         // Process the data
         List<int[][]> presenceMatrices = cleanData(rawRecords);
-        
 
-        // caclulate the probaility 
+
+        // caclulate the probaility
         double[][] probabilities=calculate(presenceMatrices);
         //printProbabilityMatrix(probabilities);
-        
 
-        //store the data 
-        storeProbabilities(probabilities);
+
+        //store the data
+        storeProbabilities(student_id, probabilities);
 
         //schedule chores
-        scheduleChores();
+        //scheduleChores();
 
     }
 
@@ -57,7 +57,7 @@ public class SSH{
         List<Map<String, Object>> records = new ArrayList<>();
 
         //Seeting up the JDBC connection, put your own password for this
-        String username = "rajveerpatter";
+        String username = "maanyshareef";
         String password = "password";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
@@ -144,13 +144,13 @@ public class SSH{
                 entryTime = minutes;
                 day = dayOfWeek;
 
-            //When exit is detected
+                //When exit is detected
             } else if ("exit".equalsIgnoreCase(action)) {
                 //If there is no previous entry time, assume the entry belongs to the previous day and start from 00:00
                 if(entryTime == null){
                     markPresence(presenceMatrix, dayOfWeek, 0, minutes);
 
-                //If there is a previous entry time
+                    //If there is a previous entry time
                 } else {
                     if(day == dayOfWeek) {
                         //Case where enter and exit occur on the same day
@@ -223,39 +223,111 @@ public class SSH{
             }
         }
 
-        //convert into probabilities 
+        //convert into probabilities
         for (int day=0;day<7;day++){
             for(int hour=0; hour<24;hour++){
-                //probability= sum/num of weeks 
+                //probability= sum/num of weeks
                 probabilities[day][hour]/= numWeeks;
             }
         }
 
         return probabilities;
-        
+
 
     }
-/* 
+/*
     // Method to print the probability matrix
     private static void printProbabilityMatrix(double[][] probabilities) {
         System.out.println("Probability Matrix:");
         for (int day = 0; day < 7; day++) {
             System.out.print("Day " + (day + 1) + ": ");
             for (int hour = 0; hour < 24; hour++) {
-                System.out.print(probabilities[day][hour]); 
+                System.out.print(probabilities[day][hour]);
             }
             System.out.println();
         }
     }
 */
 
-    private static void storeProbabilities(double[][] probabilities) {
+    // helper method to store one time slot
+    private static void storeProbability(PreparedStatement statement, int probabilityId, int studentId, String weekdayAttr, int startHour, int slotCounter, double probability) throws SQLException {
+        // setting the values for SQL query
+        statement.setInt(1, probabilityId);
+        statement.setInt(2, studentId);
+        statement.setString(3, weekdayAttr);
+        statement.setTime(4, Time.valueOf(String.format("%02d:00:00", startHour)));
+        statement.setInt(5, slotCounter);
+        statement.setDouble(6, probability);
 
+        // execute the query to store the probability data in the database
+        statement.executeUpdate();
     }
 
-    private static void scheduleChores() {
+    private static void storeProbabilities(int studentId, double[][] probabilities) {
+        // JDBC connection
+        String username = "maanyshareef";
+        String password = "password";
+        String url = "jdbc:postgresql://localhost:5432/ssh";
 
+        String query = "INSERT INTO public.probability_home " +
+                "(probability_id, student_id, weekday_attr, timeslot_start, slot_counter, probability) " +
+                "VALUES (?, ?, ?::weekday, ?, ?, ?)";
+
+        try (Connection connection = DriverManager.getConnection(url, username, password)) {
+            PreparedStatement statement = connection.prepareStatement(query);
+
+            int probabilityId = 1; // Initialize probability ID
+
+            // iterate over each day
+            for (int day = 0; day < 7; day++) {
+                // map the day index onto corresponding weekday
+                String weekdayAttr = DayOfWeek.of(day + 1).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(day + 1).toString().substring(1).toLowerCase();
+
+                int startHour = -1; // hour at which current time block starts
+                int slotCounter = 0; // counter for the number of consecutive slots with the same probability
+                double currentProbability = -1.0; // for tracking current probability to group consecutive slots
+
+                // iterate over each hour
+                for (int hour = 0; hour < 24; hour++) {
+                    double prob = probabilities[day][hour]; // get probability for the current hour
+
+                    // with these conditions, this is first time slot or probability matches the current time slot
+                    if (startHour == -1 || prob == currentProbability) {
+                        // continuing current slot if it's the first hour or probability is the same
+                        if (startHour == -1) {
+                            startHour = hour; // set the starting hour for the slot
+                            currentProbability = prob; // set current probability for the slot
+                        }
+                        // increment the slot counter for consecutive hours with same probability
+                        slotCounter++;
+                    } else {
+                        // end current time slot and store it if the probability changes
+                        if (slotCounter > 0) {
+                            storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
+                            probabilityId++; // increment probability ID for the next time slot
+                        }
+                        // start a new time slot
+                        startHour = hour;
+                        currentProbability = prob;
+                        slotCounter = 1;
+                    }
+                }
+                // after looping through all hours, checks if there's an ongoing block to store
+                if (slotCounter > 0) {
+                    storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
+                    probabilityId++;
+                }
+            }
+            statement.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
+
+    //private static void scheduleChores() {
+
+    //}
 
 
 
