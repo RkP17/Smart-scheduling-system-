@@ -16,14 +16,13 @@ public class SSH{
         int student_id = 1;
         List<Map<String, Object>> rawRecords = Database(student_id);
 
-        // Process the data
+        //Process the data
         List<int[][]> presenceMatrices = cleanData(rawRecords);
         
 
-        // caclulate the probaility 
+        //Calculate the probability
         double[][] probabilities=calculate(presenceMatrices);
         //printProbabilityMatrix(probabilities);
-        
 
         //store the data 
         storeProbabilities(probabilities);
@@ -57,8 +56,8 @@ public class SSH{
         List<Map<String, Object>> records = new ArrayList<>();
 
         //Seeting up the JDBC connection, put your own password for this
-        String username = "rajveerpatter";
-        String password = "password";
+        String username = " ";
+        String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
@@ -74,7 +73,6 @@ public class SSH{
                     record.put("timestamp", resultSet.getTimestamp("timestamp_attr").toLocalDateTime());
                     record.put("action", resultSet.getString("action_attr"));
                     records.add(record);
-                    //System.out.println(record);
                 }
             }
 
@@ -208,7 +206,7 @@ public class SSH{
         // store the probabilities into a matrix 7x24
         double[][] probabilities= new double[7][24];
 
-        //numbe of weeks in total
+        //number of weeks in total
         int numWeeks=presenceMatricies.size();
 
         // Loop through all the weekly matrices
@@ -217,7 +215,7 @@ public class SSH{
             for (int day=0; day<7;day++){
                 // for each hour
                 for (int hour=0;hour<24;hour++){
-                    // sum all the prescence values for each hour or each day
+                    // sum all the presence values for each hour or each day
                     probabilities[day][hour] += weeklyMatrix[day][hour];
                 }
             }
