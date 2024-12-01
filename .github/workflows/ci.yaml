@@ -1,4 +1,4 @@
-name: Java Maven CI
+name: "Java Maven CI"
 
 # Trigger workflow on pushes and pull requests to the 'main' branch
 on:
@@ -24,11 +24,11 @@ jobs:
       with:
         distribution: 'temurin' 
         java-version: '17'   
-    
-    - name: Unit Tests
-      run: mvn -B test --file pom.xml
-    
+    #build the project with maven
     - name: Build with Maven
       run: 
         mvn clean install
-        mvn -B test --file pom.xml
+# run the tests with maven 
+    - name: Unit Tests
+      run: mvn tests
+        
