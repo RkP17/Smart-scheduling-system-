@@ -56,8 +56,8 @@ public class SSH{
         List<Map<String, Object>> records = new ArrayList<>();
 
         //Seeting up the JDBC connection, put your own password for this
-        String username = " ";
-        String password = " ";
+        String username = "thuvo";
+        String password = "password";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
