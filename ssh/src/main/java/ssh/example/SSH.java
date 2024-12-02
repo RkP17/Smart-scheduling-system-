@@ -4,6 +4,8 @@ import java.sql.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
+
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -28,7 +30,7 @@ public class SSH{
         storeProbabilities(student_id, probabilities);
 
         //schedule chores
-        scheduleChores();
+        scheduleChores(student_id);
 
     }
 
@@ -322,7 +324,59 @@ public class SSH{
         }
     }
 
-    private static void scheduleChores() {
+    private static void scheduleChores(int id) {
+
+        String username = "thuvo";
+        String password = "password";
+        String url = "jdbc:postgresql://localhost:5432/ssh";
+
+        
+
+        try(Connection connection = DriverManager.getConnection(url, username, password)){
+
+            Statement statement = connection.createStatement();
+            String findDayIntQuery = "SELECT EXTRACT (ISODOW FROM NOW())";
+            try (ResultSet dayIntResult = statement.executeQuery(findDayIntQuery)) {
+                while (dayIntResult.next()) {
+                    int dayInt = dayIntResult.getInt("extract"); //1 for Monday, 2 for Tuesday,... 7 is Sunday.
+                    System.out.println(dayInt);
+                    String weekdayAttr = DayOfWeek.of(dayInt).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(dayInt).toString().substring(1).toLowerCase();
+                    System.out.println(weekdayAttr);
+
+                    String findStudentChoreQuery = "SELECT chore_name FROM CHORE " +
+                        "WHERE weekday_attr= '" + weekdayAttr + "'" +
+                        "AND student_id= ?";
+                    
+                    PreparedStatement statement2 = connection.prepareStatement(findStudentChoreQuery);
+                    statement2.setInt(1, id);
+                    try (ResultSet choresResult = statement2.executeQuery()) {
+                        int numChores = 0;
+                        String chores ="";
+                        while (choresResult.next()) {
+                            if (numChores == 0) {
+                                chores = choresResult.getString("chore_name");
+                            } else {
+                                chores = chores + "," + choresResult.getString("chore_name");
+                            }
+                            numChores++;
+                            
+                        }
+                        System.out.println(chores);
+                    }
+
+
+                }                
+            }
+            
+
+            
+
+
+            
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
 
