@@ -16,6 +16,16 @@
         </repository>
     </distributionManagement>
 
+    <classpath>
+        <classpathentry kind="src" output="target/classes/ssh/example" path="src">
+        <attributes>
+            <attribute name="optional" value="true"/>
+            <attribute name="maven.pomderived" value="true"/>
+            <attribute name="test" value="true"/>
+        </attributes>
+    </classpathentry>
+    </classpath>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
