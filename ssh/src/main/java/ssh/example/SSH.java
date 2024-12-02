@@ -262,7 +262,7 @@ public class SSH{
 
     private static void storeProbabilities(int studentId, double[][] probabilities) {
         // JDBC connection
-        String username = "maanyshareef";
+        String username = "thuvo";
         String password = "password";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
