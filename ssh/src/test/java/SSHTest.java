@@ -1,4 +1,5 @@
 
+import ssh.example.SSH;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -10,7 +11,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import ssh.example.SSH;
+
 
 
 public class SSHTest {
