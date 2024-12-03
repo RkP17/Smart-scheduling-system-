@@ -275,6 +275,13 @@ public class SSH{
 
             int probabilityId = 1; // Initialize probability ID
 
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT COALESCE(MAX(probability_id), 0) FROM public.probability_home")) {
+                    if (rs.next()) {
+                    probabilityId = rs.getInt(1) + 1; // start from the next ID
+                    }
+                 }
+
             // iterate over each day
             for (int day = 0; day < 7; day++) {
                 // map the day index onto corresponding weekday
