@@ -394,7 +394,7 @@ public class SSH{
                             System.out.println(highestProbability);
                             System.out.println(probability_id);
                             System.out.println(timeslot_start);
-                            System.out.println("The best timeslot for student " + id + " to " + chores + " is " + timeslot_start);
+                            System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + timeslot_start);
                         }
                     }
 
