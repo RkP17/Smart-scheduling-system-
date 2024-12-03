@@ -387,6 +387,7 @@ public class SSH{
                             "AND weekday_attr = '" + weekdayAttr + "'" +
                             ") " +
                             "OR timeslot_start > '07:59:59'::time " +
+                            "AND timeslot_start < '21:00:00'::time " +
                             "AND weekday_attr = '" + weekdayAttr + "'" +
                            "AND student_id= ?" + 
                            " )";
@@ -407,10 +408,16 @@ public class SSH{
                                     timeslot_start = eligbileTimeslotResult.getString("timeslot_start");
                                 }
                             }
-                            System.out.println(highestProbability);
-                            System.out.println(probability_id);
-                            System.out.println(timeslot_start);
-                            System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + timeslot_start);
+                            if (probability_id != -1) {
+                                System.out.println(highestProbability);
+                                System.out.println(probability_id);
+                                System.out.println(timeslot_start);
+                                System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + timeslot_start);                                
+                            } else {
+                                //This will only be reached when probability_home is incorrectly generated.
+                                System.out.println("Could not find the best time for student " + id + " to do their chores.");
+                            }
+
                         }
                     }
 
