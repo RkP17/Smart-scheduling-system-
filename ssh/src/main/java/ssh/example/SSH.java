@@ -362,6 +362,40 @@ public class SSH{
                             
                         }
                         System.out.println(chores);
+
+                        String findEligibleTimeslotQuery = "SELECT probability_id, timeslot_start, " +
+                        "slot_counter, probability, " +
+                        "timeslot_start + INTERVAL '1 hour' * slot_counter " +
+                        "AS timeslot_end  " +
+                        "FROM probability_home " +
+                        "WHERE ( " +
+                            "(" +
+                            "timeslot_start < '08:00:00'::time " +
+                            "AND timeslot_start + INTERVAL '1 hour' * slot_counter > '08:00:00'::time " +
+                            "AND weekday_attr = '" + weekdayAttr + "'" +
+                            ") " +
+                            "OR timeslot_start > '07:59:59'::time " +
+                            "AND weekday_attr = '" + weekdayAttr + "'" +
+                           "AND student_id= ?" + 
+                           " )";
+                        PreparedStatement statement3 = connection.prepareStatement(findEligibleTimeslotQuery);
+                        statement3.setInt(1,id);
+                        try (ResultSet eligbileTimeslotResult = statement3.executeQuery()) {
+                            long highestProbability = 0;
+                            int probability_id = -1;
+                            String timeslot_start = "";
+                            while (eligbileTimeslotResult.next()) {
+                                if (eligbileTimeslotResult.getLong("probability") > highestProbability) {
+                                    highestProbability = eligbileTimeslotResult.getLong("probability");
+                                    probability_id = eligbileTimeslotResult.getInt("probability_id");
+                                    timeslot_start = eligbileTimeslotResult.getString("timeslot_start");
+                                }
+                            }
+                            System.out.println(highestProbability);
+                            System.out.println(probability_id);
+                            System.out.println(timeslot_start);
+                            System.out.println("The best timeslot for student " + id + " to " + chores + " is " + timeslot_start);
+                        }
                     }
 
 
