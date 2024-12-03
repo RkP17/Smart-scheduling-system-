@@ -15,7 +15,7 @@ public class SSH{
         //Database
 
         //The line below is what I used to test the code
-        int student_id = 1;
+        int student_id = 2;
         List<Map<String, Object>> rawRecords = Database(student_id);
 
         //Process the data
