@@ -325,7 +325,7 @@ public class SSH{
     }
 
     private static void scheduleChores(int id) {
-
+        //As usual, change these to your posstgres credentials
         String username = "thuvo";
         String password = "password";
         String url = "jdbc:postgresql://localhost:5432/ssh";
@@ -334,15 +334,20 @@ public class SSH{
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
+            //Step 1: Find out what day it is from the database.
             Statement statement = connection.createStatement();
-            String findDayIntQuery = "SELECT EXTRACT (ISODOW FROM NOW())";
+            String findDayIntQuery = "SELECT EXTRACT (ISODOW FROM NOW())"; //SELECT EXTRACT (ISODOW FROM NOW()) returns an integer value 1 for Monday, 2 for Tuesday, and so on until 7 for Sunday.
             try (ResultSet dayIntResult = statement.executeQuery(findDayIntQuery)) {
                 while (dayIntResult.next()) {
-                    int dayInt = dayIntResult.getInt("extract"); //1 for Monday, 2 for Tuesday,... 7 is Sunday.
-                    System.out.println(dayInt);
+                    
+                    int dayInt = dayIntResult.getInt("extract");
+                    //System.out.println(dayInt); //print the dayInt value, for testing purposes
+
+                    //Convert the dayInt value into the corresponding String (Monday, Tuesday, etc)
                     String weekdayAttr = DayOfWeek.of(dayInt).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(dayInt).toString().substring(1).toLowerCase();
                     System.out.println(weekdayAttr);
 
+                    //Step 2: Find out what chores the student has today
                     String findStudentChoreQuery = "SELECT chore_name FROM CHORE " +
                         "WHERE weekday_attr= '" + weekdayAttr + "'" +
                         "AND student_id= ?";
@@ -350,19 +355,26 @@ public class SSH{
                     PreparedStatement statement2 = connection.prepareStatement(findStudentChoreQuery);
                     statement2.setInt(1, id);
                     try (ResultSet choresResult = statement2.executeQuery()) {
-                        int numChores = 0;
+
+                        //Add all the chores to the chores string
+                        Boolean firstChore = true;
                         String chores ="";
                         while (choresResult.next()) {
-                            if (numChores == 0) {
+                            if (firstChore) {
                                 chores = choresResult.getString("chore_name");
+                                firstChore = false;
                             } else {
                                 chores = chores + "," + choresResult.getString("chore_name");
                             }
-                            numChores++;
                             
                         }
-                        System.out.println(chores);
+                        //System.out.println(chores); //Print the chores for testing purposes
 
+                        //Step 3: Find what the best timeslot for the student to complete their chores, based on how likely they are to be home
+
+                        /*Find the eligible timeslots. To be an eligible timeslot, we want to exclude inappropriate times to do chores (before 8am and after 9pm)
+                          To do this, we want to include timeslots that include the times 08:00:00-21:00:00 
+                          This may include timeslots that start before 08:00:00 */
                         String findEligibleTimeslotQuery = "SELECT probability_id, timeslot_start, " +
                         "slot_counter, probability, " +
                         "timeslot_start + INTERVAL '1 hour' * slot_counter " +
@@ -381,6 +393,10 @@ public class SSH{
                         PreparedStatement statement3 = connection.prepareStatement(findEligibleTimeslotQuery);
                         statement3.setInt(1,id);
                         try (ResultSet eligbileTimeslotResult = statement3.executeQuery()) {
+
+                            //Find the first timeslot when the student is most likely to be home.
+                            /*In the future we may add a feature where if the currect time is past
+                              the recommended timeslot, the next best timeslot is suggested */
                             long highestProbability = 0;
                             int probability_id = -1;
                             String timeslot_start = "";
