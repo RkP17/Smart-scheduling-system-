@@ -22,7 +22,7 @@ public class SSH{
 
         //Calculate the probability
         double[][] probabilities=calculate(presenceMatrices);
-        printProbabilityMatrix(probabilities);
+        //printProbabilityMatrix(probabilities);
 
         //store the data 
         storeProbabilities(student_id, probabilities);
@@ -371,7 +371,7 @@ public class SSH{
 
                     //Convert the dayInt value into the corresponding String (Monday, Tuesday, etc)
                     String weekdayAttr = DayOfWeek.of(dayInt).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(dayInt).toString().substring(1).toLowerCase();
-                    System.out.println(weekdayAttr);
+                    //System.out.println(weekdayAttr); //print the weekday for testing purposes
 
                     //Step 2: Find out what chores the student has today
                     String findStudentChoreQuery = "SELECT chore_name FROM CHORE " +
@@ -439,9 +439,10 @@ public class SSH{
                                     }
                                 }
                                 if (probability_id != -1) {
+                                    /*Below is for debugging:
                                     System.out.println(highestProbability);
                                     System.out.println(probability_id);
-                                    System.out.println(timeslot_start);
+                                    System.out.println(timeslot_start);*/
                                     System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + timeslot_start);
                                 } else {
                                     //This will only be reached when probability_home is incorrectly generated.
