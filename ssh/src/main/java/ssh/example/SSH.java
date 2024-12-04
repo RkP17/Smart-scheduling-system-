@@ -337,8 +337,6 @@ public class SSH{
         String password = "password";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
-        
-
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
             //Step 1: Find out what day it is from the database.
@@ -428,29 +426,14 @@ public class SSH{
                                     //This will only be reached when probability_home is incorrectly generated.
                                     System.out.println("Could not find the best time for student " + id + " to do their chores.");
                                 }
-                        }
-
+                            }
                         }
                     }
-
-
                 }                
             }
-            
-
-            
-
-
-            
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
-
-
-
-
 }
 
