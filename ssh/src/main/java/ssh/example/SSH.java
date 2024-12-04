@@ -15,7 +15,7 @@ public class SSH{
         //Database
 
         //The line below is what I used to test the code
-        int student_id = 2;
+        int student_id = 1;
         List<Map<String, Object>> rawRecords = Database(student_id);
 
         //Process the data
@@ -263,65 +263,72 @@ public class SSH{
     }
 
     private static void storeProbabilities(int studentId, double[][] probabilities) {
-        // JDBC connection
-        String username = "thuvo";
-        String password = "password";
-        String url = "jdbc:postgresql://localhost:5432/ssh";
-
-        String query = "INSERT INTO public.probability_home " +
-                "(probability_id, student_id, weekday_attr, timeslot_start, slot_counter, probability) " +
-                "VALUES (?, ?, ?::weekday, ?, ?, ?)";
-
-        try (Connection connection = DriverManager.getConnection(url, username, password)) {
-            PreparedStatement statement = connection.prepareStatement(query);
-
-            int probabilityId = 1; // Initialize probability ID
-
-            // iterate over each day
-            for (int day = 0; day < 7; day++) {
-                // map the day index onto corresponding weekday
-                String weekdayAttr = DayOfWeek.of(day + 1).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(day + 1).toString().substring(1).toLowerCase();
-
-                int startHour = -1; // hour at which current time block starts
-                int slotCounter = 0; // counter for the number of consecutive slots with the same probability
-                double currentProbability = -1.0; // for tracking current probability to group consecutive slots
-
-                // iterate over each hour
-                for (int hour = 0; hour < 24; hour++) {
-                    double prob = probabilities[day][hour]; // get probability for the current hour
-
-                    // with these conditions, this is first time slot or probability matches the current time slot
-                    if (startHour == -1 || prob == currentProbability) {
-                        // continuing current slot if it's the first hour or probability is the same
-                        if (startHour == -1) {
-                            startHour = hour; // set the starting hour for the slot
-                            currentProbability = prob; // set current probability for the slot
-                        }
-                        // increment the slot counter for consecutive hours with same probability
-                        slotCounter++;
-                    } else {
-                        // end current time slot and store it if the probability changes
-                        if (slotCounter > 0) {
-                            storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
-                            probabilityId++; // increment probability ID for the next time slot
-                        }
-                        // start a new time slot
-                        startHour = hour;
-                        currentProbability = prob;
-                        slotCounter = 1;
-                    }
-                }
-                // after looping through all hours, checks if there's an ongoing block to store
-                if (slotCounter > 0) {
-                    storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
-                    probabilityId++;
-                }
-            }
-            statement.close();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+         // JDBC connection
+         String username = "thuvo";
+         String password = "password";
+         String url = "jdbc:postgresql://localhost:5432/ssh";
+ 
+         String query = "INSERT INTO public.probability_home " +
+                 "(probability_id, student_id, weekday_attr, timeslot_start, slot_counter, probability) " +
+                 "VALUES (?, ?, ?::weekday, ?, ?, ?)";
+ 
+         try (Connection connection = DriverManager.getConnection(url, username, password)) {
+             PreparedStatement statement = connection.prepareStatement(query);
+ 
+             int probabilityId = 1; // Initialize probability ID
+ 
+             try (Statement stmt = connection.createStatement();
+                  ResultSet rs = stmt.executeQuery("SELECT COALESCE(MAX(probability_id), 0) FROM public.probability_home")) {
+                     if (rs.next()) {
+                     probabilityId = rs.getInt(1) + 1; // start from the next ID
+                     }
+                  }
+ 
+             // iterate over each day
+             for (int day = 0; day < 7; day++) {
+                 // map the day index onto corresponding weekday
+                 String weekdayAttr = DayOfWeek.of(day + 1).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(day + 1).toString().substring(1).toLowerCase();
+ 
+                 int startHour = -1; // hour at which current time block starts
+                 int slotCounter = 0; // counter for the number of consecutive slots with the same probability
+                 double currentProbability = -1.0; // for tracking current probability to group consecutive slots
+ 
+                 // iterate over each hour
+                 for (int hour = 0; hour < 24; hour++) {
+                     double prob = probabilities[day][hour]; // get probability for the current hour
+ 
+                     // with these conditions, this is first time slot or probability matches the current time slot
+                     if (startHour == -1 || prob == currentProbability) {
+                         // continuing current slot if it's the first hour or probability is the same
+                         if (startHour == -1) {
+                             startHour = hour; // set the starting hour for the slot
+                             currentProbability = prob; // set current probability for the slot
+                         }
+                         // increment the slot counter for consecutive hours with same probability
+                         slotCounter++;
+                     } else {
+                         // end current time slot and store it if the probability changes
+                         if (slotCounter > 0) {
+                             storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
+                             probabilityId++; // increment probability ID for the next time slot
+                         }
+                         // start a new time slot
+                         startHour = hour;
+                         currentProbability = prob;
+                         slotCounter = 1;
+                     }
+                 }
+                 // after looping through all hours, checks if there's an ongoing block to store
+                 if (slotCounter > 0) {
+                     storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
+                     probabilityId++;
+                 }
+             }
+             statement.close();
+ 
+         } catch (SQLException e) {
+             e.printStackTrace();
+         }
     }
 
     private static void scheduleChores(int id) {
@@ -368,55 +375,60 @@ public class SSH{
                             }
                             
                         }
-                        //System.out.println(chores); //Print the chores for testing purposes
+                        if (chores.equals("")) {
+                            System.out.println("Student " + id + " does not have any chores scheduled for today.");
+                        } else {
+                            //System.out.println(chores); //Print the chores for testing purposes
 
-                        //Step 3: Find what the best timeslot for the student to complete their chores, based on how likely they are to be home
+                            //Step 3: Find what the best timeslot for the student to complete their chores, based on how likely they are to be home
 
-                        /*Find the eligible timeslots. To be an eligible timeslot, we want to exclude inappropriate times to do chores (before 8am and after 9pm)
-                          To do this, we want to include timeslots that include the times 08:00:00-21:00:00 
-                          This may include timeslots that start before 08:00:00 */
-                        String findEligibleTimeslotQuery = "SELECT probability_id, timeslot_start, " +
-                        "slot_counter, probability, " +
-                        "timeslot_start + INTERVAL '1 hour' * slot_counter " +
-                        "AS timeslot_end  " +
-                        "FROM probability_home " +
-                        "WHERE ( " +
-                            "(" +
-                            "timeslot_start < '08:00:00'::time " +
-                            "AND timeslot_start + INTERVAL '1 hour' * slot_counter > '08:00:00'::time " +
-                            "AND weekday_attr = '" + weekdayAttr + "'" +
-                            ") " +
-                            "OR timeslot_start > '07:59:59'::time " +
-                            "AND timeslot_start < '21:00:00'::time " +
-                            "AND weekday_attr = '" + weekdayAttr + "'" +
-                           "AND student_id= ?" + 
-                           " )";
-                        PreparedStatement statement3 = connection.prepareStatement(findEligibleTimeslotQuery);
-                        statement3.setInt(1,id);
-                        try (ResultSet eligbileTimeslotResult = statement3.executeQuery()) {
+                            /*Find the eligible timeslots. To be an eligible timeslot, we want to exclude inappropriate times to do chores (before 8am and after 9pm)
+                            To do this, we want to include timeslots that include the times 08:00:00-21:00:00 
+                            This may include timeslots that start before 08:00:00 */
+                            
+                            String findEligibleTimeslotQuery = "SELECT probability_id, timeslot_start, " +
+                            "slot_counter, probability, " +
+                            "timeslot_start + INTERVAL '1 hour' * slot_counter " +
+                            "AS timeslot_end  " +
+                            "FROM probability_home " +
+                            "WHERE ( " +
+                                "(" +
+                                "timeslot_start < '08:00:00'::time " +
+                                "AND timeslot_start + INTERVAL '1 hour' * slot_counter > '08:00:00'::time " +
+                                "AND weekday_attr = '" + weekdayAttr + "'" +
+                                ") " +
+                                "OR timeslot_start > '07:59:59'::time " +
+                                "AND timeslot_start < '21:00:00'::time " +
+                                "AND weekday_attr = '" + weekdayAttr + "'" +
+                            "AND student_id= ?" + 
+                            " )";
+                            PreparedStatement statement3 = connection.prepareStatement(findEligibleTimeslotQuery);
+                            statement3.setInt(1,id);
+                            try (ResultSet eligbileTimeslotResult = statement3.executeQuery()) {
 
-                            //Find the first timeslot when the student is most likely to be home.
-                            /*In the future we may add a feature where if the currect time is past
-                              the recommended timeslot, the next best timeslot is suggested */
-                            long highestProbability = 0;
-                            int probability_id = -1;
-                            String timeslot_start = "";
-                            while (eligbileTimeslotResult.next()) {
-                                if (eligbileTimeslotResult.getLong("probability") > highestProbability) {
-                                    highestProbability = eligbileTimeslotResult.getLong("probability");
-                                    probability_id = eligbileTimeslotResult.getInt("probability_id");
-                                    timeslot_start = eligbileTimeslotResult.getString("timeslot_start");
+                                //Find the first timeslot when the student is most likely to be home.
+                                /*In the future we may add a feature where if the currect time is past
+                                the recommended timeslot, the next best timeslot is suggested */
+                                long highestProbability = 0;
+                                int probability_id = -1;
+                                String timeslot_start = "";
+                                while (eligbileTimeslotResult.next()) {
+                                    if (eligbileTimeslotResult.getLong("probability") > highestProbability) {
+                                        highestProbability = eligbileTimeslotResult.getLong("probability");
+                                        probability_id = eligbileTimeslotResult.getInt("probability_id");
+                                        timeslot_start = eligbileTimeslotResult.getString("timeslot_start");
+                                    }
                                 }
-                            }
-                            if (probability_id != -1) {
-                                System.out.println(highestProbability);
-                                System.out.println(probability_id);
-                                System.out.println(timeslot_start);
-                                System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + timeslot_start);                                
-                            } else {
-                                //This will only be reached when probability_home is incorrectly generated.
-                                System.out.println("Could not find the best time for student " + id + " to do their chores.");
-                            }
+                                if (probability_id != -1) {
+                                    System.out.println(highestProbability);
+                                    System.out.println(probability_id);
+                                    System.out.println(timeslot_start);
+                                    System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + timeslot_start);                                
+                                } else {
+                                    //This will only be reached when probability_home is incorrectly generated.
+                                    System.out.println("Could not find the best time for student " + id + " to do their chores.");
+                                }
+                        }
 
                         }
                     }
