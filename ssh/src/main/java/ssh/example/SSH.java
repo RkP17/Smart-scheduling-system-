@@ -15,7 +15,7 @@ public class SSH{
         //Database
 
         //The line below is what I used to test the code
-        int student_id = 1;
+        int student_id = 3;
         List<Map<String, Object>> rawRecords = Database(student_id);
 
         //Process the data
@@ -263,72 +263,94 @@ public class SSH{
     }
 
     private static void storeProbabilities(int studentId, double[][] probabilities) {
-         // JDBC connection
-         String username = "thuvo";
-         String password = "password";
-         String url = "jdbc:postgresql://localhost:5432/ssh";
- 
-         String query = "INSERT INTO public.probability_home " +
+        // JDBC connection
+        String username = "thuvo";
+        String password = "password";
+        String url = "jdbc:postgresql://localhost:5432/ssh";
+
+        String droppHomequery = "DROP TABLE probability_home";
+        String createpHomequery = "CREATE TABLE public.probability_home ( " +
+                    "probability_id integer NOT NULL, " +
+                    "student_id INTEGER NOT NULL, " +
+                    "weekday_attr weekday, " +
+                    "timeslot_start time, " +
+                    "slot_counter integer, " +
+                    "probability decimal(6,5), " +
+                    "PRIMARY KEY (probability_id) )";
+        String ownerpHomeQuery = "ALTER TABLE public.probability_home OWNER TO user1 ";
+        String keypHomeQuery = "ALTER TABLE public.probability_home " +
+                    "ADD FOREIGN KEY (student_id) " +
+                    "REFERENCES public.students(student_id) " +
+                    "ON UPDATE CASCADE " +
+                    "ON DELETE CASCADE " +
+                    "NOT VALID ";
+        String query = "INSERT INTO public.probability_home " +
                  "(probability_id, student_id, weekday_attr, timeslot_start, slot_counter, probability) " +
                  "VALUES (?, ?, ?::weekday, ?, ?, ?)";
  
          try (Connection connection = DriverManager.getConnection(url, username, password)) {
-             PreparedStatement statement = connection.prepareStatement(query);
+            Statement statementbatch = connection.createStatement();
+            statementbatch.addBatch(droppHomequery);
+            statementbatch.addBatch(createpHomequery);
+            statementbatch.addBatch(ownerpHomeQuery);
+            statementbatch.addBatch(keypHomeQuery);
+            statementbatch.executeBatch();
+            PreparedStatement statement = connection.prepareStatement(query);
  
-             int probabilityId = 1; // Initialize probability ID
+            int probabilityId = 1; // Initialize probability ID
  
-             try (Statement stmt = connection.createStatement();
-                  ResultSet rs = stmt.executeQuery("SELECT COALESCE(MAX(probability_id), 0) FROM public.probability_home")) {
-                     if (rs.next()) {
-                     probabilityId = rs.getInt(1) + 1; // start from the next ID
-                     }
-                  }
+            try (Statement stmt = connection.createStatement();
+                ResultSet rs = stmt.executeQuery("SELECT COALESCE(MAX(probability_id), 0) FROM public.probability_home")) {
+                    if (rs.next()) {
+                    probabilityId = rs.getInt(1) + 1; // start from the next ID
+                    }
+                }
  
              // iterate over each day
-             for (int day = 0; day < 7; day++) {
-                 // map the day index onto corresponding weekday
-                 String weekdayAttr = DayOfWeek.of(day + 1).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(day + 1).toString().substring(1).toLowerCase();
+            for (int day = 0; day < 7; day++) {
+                // map the day index onto corresponding weekday
+                String weekdayAttr = DayOfWeek.of(day + 1).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(day + 1).toString().substring(1).toLowerCase();
  
-                 int startHour = -1; // hour at which current time block starts
-                 int slotCounter = 0; // counter for the number of consecutive slots with the same probability
-                 double currentProbability = -1.0; // for tracking current probability to group consecutive slots
+                int startHour = -1; // hour at which current time block starts
+                int slotCounter = 0; // counter for the number of consecutive slots with the same probability
+                double currentProbability = -1.0; // for tracking current probability to group consecutive slots
  
-                 // iterate over each hour
-                 for (int hour = 0; hour < 24; hour++) {
-                     double prob = probabilities[day][hour]; // get probability for the current hour
+                // iterate over each hour
+                for (int hour = 0; hour < 24; hour++) {
+                    double prob = probabilities[day][hour]; // get probability for the current hour
  
-                     // with these conditions, this is first time slot or probability matches the current time slot
-                     if (startHour == -1 || prob == currentProbability) {
-                         // continuing current slot if it's the first hour or probability is the same
-                         if (startHour == -1) {
-                             startHour = hour; // set the starting hour for the slot
-                             currentProbability = prob; // set current probability for the slot
-                         }
-                         // increment the slot counter for consecutive hours with same probability
-                         slotCounter++;
-                     } else {
-                         // end current time slot and store it if the probability changes
-                         if (slotCounter > 0) {
-                             storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
-                             probabilityId++; // increment probability ID for the next time slot
-                         }
-                         // start a new time slot
-                         startHour = hour;
-                         currentProbability = prob;
-                         slotCounter = 1;
-                     }
-                 }
-                 // after looping through all hours, checks if there's an ongoing block to store
-                 if (slotCounter > 0) {
-                     storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
-                     probabilityId++;
-                 }
-             }
-             statement.close();
- 
-         } catch (SQLException e) {
-             e.printStackTrace();
-         }
+                    // with these conditions, this is first time slot or probability matches the current time slot
+                    if (startHour == -1 || prob == currentProbability) {
+                        // continuing current slot if it's the first hour or probability is the same
+                        if (startHour == -1) {
+                            startHour = hour; // set the starting hour for the slot
+                            currentProbability = prob; // set current probability for the slot
+                        }
+                        // increment the slot counter for consecutive hours with same probability
+                        slotCounter++;
+                    } else {
+                        // end current time slot and store it if the probability changes
+                        if (slotCounter > 0) {
+                            storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
+                            probabilityId++; // increment probability ID for the next time slot
+                        }
+                        // start a new time slot
+                        startHour = hour;
+                        currentProbability = prob;
+                        slotCounter = 1;
+                    }
+                }
+                // after looping through all hours, checks if there's an ongoing block to store
+                if (slotCounter > 0) {
+                    storeProbability(statement, probabilityId, studentId, weekdayAttr, startHour, slotCounter, currentProbability);
+                    probabilityId++;
+                }
+            }
+            statement.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void scheduleChores(int id) {
