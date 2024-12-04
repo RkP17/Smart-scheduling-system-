@@ -22,13 +22,13 @@ public class SSH{
 
         //Calculate the probability
         double[][] probabilities=calculate(presenceMatrices);
-        printProbabilityMatrix(probabilities);
+        //printProbabilityMatrix(probabilities);
 
         //store the data 
         storeProbabilities(student_id, probabilities);
 
         //schedule chores
-        scheduleChores();
+        scheduleChores(student_id);
 
     }
 
@@ -262,15 +262,38 @@ public class SSH{
 
     private static void storeProbabilities(int studentId, double[][] probabilities) {
         // JDBC connection
-        String username = "maanyshareef";
-        String password = "password";
+        String username = " ";
+        String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
+
+        String droppHomequery = "DROP TABLE probability_home";
+        String createpHomequery = "CREATE TABLE public.probability_home ( " +
+                "probability_id integer NOT NULL, " +
+                "student_id INTEGER NOT NULL, " +
+                "weekday_attr weekday, " +
+                "timeslot_start time, " +
+                "slot_counter integer, " +
+                "probability decimal(6,5), " +
+                "PRIMARY KEY (probability_id) )";
+        String ownerpHomeQuery = "ALTER TABLE public.probability_home OWNER TO user1 ";
+        String keypHomeQuery = "ALTER TABLE public.probability_home " +
+                "ADD FOREIGN KEY (student_id) " +
+                "REFERENCES public.students(student_id) " +
+                "ON UPDATE CASCADE " +
+                "ON DELETE CASCADE " +
+                "NOT VALID ";
         String query = "INSERT INTO public.probability_home " +
                 "(probability_id, student_id, weekday_attr, timeslot_start, slot_counter, probability) " +
                 "VALUES (?, ?, ?::weekday, ?, ?, ?)";
 
         try (Connection connection = DriverManager.getConnection(url, username, password)) {
+            Statement statementbatch = connection.createStatement();
+            statementbatch.addBatch(droppHomequery);
+            statementbatch.addBatch(createpHomequery);
+            statementbatch.addBatch(ownerpHomeQuery);
+            statementbatch.addBatch(keypHomeQuery);
+            statementbatch.executeBatch();
             PreparedStatement statement = connection.prepareStatement(query);
 
             int probabilityId = 1; // Initialize probability ID
@@ -329,12 +352,110 @@ public class SSH{
         }
     }
 
-    private static void scheduleChores() {
+    private static void scheduleChores(int id) {
+        //As usual, change these to your posstgres credentials
+        String username = " ";
+        String password = " ";
+        String url = "jdbc:postgresql://localhost:5432/ssh";
 
+        try(Connection connection = DriverManager.getConnection(url, username, password)){
+
+            //Step 1: Find out what day it is from the database.
+            Statement statement = connection.createStatement();
+            String findDayIntQuery = "SELECT EXTRACT (ISODOW FROM NOW())"; //SELECT EXTRACT (ISODOW FROM NOW()) returns an integer value 1 for Monday, 2 for Tuesday, and so on until 7 for Sunday.
+            try (ResultSet dayIntResult = statement.executeQuery(findDayIntQuery)) {
+                while (dayIntResult.next()) {
+
+                    int dayInt = dayIntResult.getInt("extract");
+                    //System.out.println(dayInt); //print the dayInt value, for testing purposes
+
+                    //Convert the dayInt value into the corresponding String (Monday, Tuesday, etc)
+                    String weekdayAttr = DayOfWeek.of(dayInt).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(dayInt).toString().substring(1).toLowerCase();
+                    //System.out.println(weekdayAttr); //print the weekday for testing purposes
+
+                    //Step 2: Find out what chores the student has today
+                    String findStudentChoreQuery = "SELECT chore_name FROM CHORE " +
+                            "WHERE weekday_attr= '" + weekdayAttr + "'" +
+                            "AND student_id= ?";
+
+                    PreparedStatement statement2 = connection.prepareStatement(findStudentChoreQuery);
+                    statement2.setInt(1, id);
+                    try (ResultSet choresResult = statement2.executeQuery()) {
+
+                        //Add all the chores to the chores string
+                        Boolean firstChore = true;
+                        String chores ="";
+                        while (choresResult.next()) {
+                            if (firstChore) {
+                                chores = choresResult.getString("chore_name");
+                                firstChore = false;
+                            } else {
+                                chores = chores + "," + choresResult.getString("chore_name");
+                            }
+
+                        }
+                        if (chores.equals("")) {
+                            System.out.println("Student " + id + " does not have any chores scheduled for today.");
+                        } else {
+                            //System.out.println(chores); //Print the chores for testing purposes
+
+                            //Step 3: Find what the best timeslot for the student to complete their chores, based on how likely they are to be home
+
+                            /*Find the eligible timeslots. To be an eligible timeslot, we want to exclude inappropriate times to do chores (before 8am and after 9pm)
+                            To do this, we want to include timeslots that include the times 08:00:00-21:00:00
+                            This may include timeslots that start before 08:00:00 */
+
+                            String findEligibleTimeslotQuery = "SELECT probability_id, timeslot_start, " +
+                                    "slot_counter, probability, " +
+                                    "timeslot_start + INTERVAL '1 hour' * slot_counter " +
+                                    "AS timeslot_end  " +
+                                    "FROM probability_home " +
+                                    "WHERE ( " +
+                                    "(" +
+                                    "timeslot_start < '08:00:00'::time " +
+                                    "AND timeslot_start + INTERVAL '1 hour' * slot_counter > '08:00:00'::time " +
+                                    "AND weekday_attr = '" + weekdayAttr + "'" +
+                                    ") " +
+                                    "OR timeslot_start > '07:59:59'::time " +
+                                    "AND timeslot_start < '21:00:00'::time " +
+                                    "AND weekday_attr = '" + weekdayAttr + "'" +
+                                    "AND student_id= ?" +
+                                    " )";
+                            PreparedStatement statement3 = connection.prepareStatement(findEligibleTimeslotQuery);
+                            statement3.setInt(1,id);
+                            try (ResultSet eligbileTimeslotResult = statement3.executeQuery()) {
+
+                                //Find the first timeslot when the student is most likely to be home.
+                                /*In the future we may add a feature where if the currect time is past
+                                the recommended timeslot, the next best timeslot is suggested */
+                                long highestProbability = 0;
+                                int probability_id = -1;
+                                String timeslot_start = "";
+                                while (eligbileTimeslotResult.next()) {
+                                    if (eligbileTimeslotResult.getLong("probability") > highestProbability) {
+                                        highestProbability = eligbileTimeslotResult.getLong("probability");
+                                        probability_id = eligbileTimeslotResult.getInt("probability_id");
+                                        timeslot_start = eligbileTimeslotResult.getString("timeslot_start");
+                                    }
+                                }
+                                if (probability_id != -1) {
+                                    /*Below is for debugging:
+                                    System.out.println(highestProbability);
+                                    System.out.println(probability_id);
+                                    System.out.println(timeslot_start);*/
+                                    System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + timeslot_start);
+                                } else {
+                                    //This will only be reached when probability_home is incorrectly generated.
+                                    System.out.println("Could not find the best time for student " + id + " to do their chores.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
-
-
-
-
 }
 
