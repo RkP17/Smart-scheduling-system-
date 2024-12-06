@@ -260,7 +260,7 @@ public class SSH{
         statement.executeUpdate();
     }
 
-    private static void storeProbabilities(int studentId, double[][] probabilities) {
+    public static void storeProbabilities(int studentId, double[][] probabilities) {
         // JDBC connection
         String username = " ";
         String password = " ";
