@@ -7,14 +7,23 @@ import java.util.*;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+
+
 public class SSH{
+
+
     public static void main(String[] args) {
+
+        //Used for  setting up the JDBC connection, put your own username & password for this
+        String username = "thuvo";
+        String password = " password";
+        String url = "jdbc:postgresql://localhost:5432/ssh";        
 
         //Database
 
         //The line below is what I used to test the code
-        int student_id = 1;
-        List<Map<String, Object>> rawRecords = Database(student_id);
+        int student_id = 0;
+        List<Map<String, Object>> rawRecords = Database(username, password, url, student_id);
 
         //Process the data
         List<int[][]> presenceMatrices = cleanData(rawRecords);
@@ -25,15 +34,15 @@ public class SSH{
         //printProbabilityMatrix(probabilities);
 
         //store the data 
-        storeProbabilities(student_id, probabilities);
+        storeProbabilities(username, password, url, student_id, probabilities);
 
         //schedule chores
-        scheduleChores(student_id);
+        scheduleChores(username, password, url, student_id);
 
     }
 
     // SQL statements for the database (If we want to do it through here rather than the terminal)
-    public static List<Map<String, Object>> Database(int id) {
+    public static List<Map<String, Object>> Database(String username, String password, String url, int id) {
         //Query to get up to 8 weeks worth of data, calculated by subtracting 8 weeks from most recent record
         String query = "WITH latest_date AS (" +
                 "    SELECT MAX(timestamp_attr) AS recent_time " +
@@ -54,11 +63,6 @@ public class SSH{
                 "ORDER BY timestamp_attr";
 
         List<Map<String, Object>> records = new ArrayList<>();
-
-        //Seeting up the JDBC connection, put your own password for this
-        String username = " ";
-        String password = " ";
-        String url = "jdbc:postgresql://localhost:5432/ssh";
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
@@ -260,12 +264,7 @@ public class SSH{
         statement.executeUpdate();
     }
 
-    private static void storeProbabilities(int studentId, double[][] probabilities) {
-        // JDBC connection
-        String username = " ";
-        String password = " ";
-        String url = "jdbc:postgresql://localhost:5432/ssh";
-
+    private static void storeProbabilities(String username, String password, String url, int studentId, double[][] probabilities) {
 
         String droppHomequery = "DROP TABLE probability_home";
         String createpHomequery = "CREATE TABLE public.probability_home ( " +
@@ -352,11 +351,7 @@ public class SSH{
         }
     }
 
-    private static void scheduleChores(int id) {
-        //As usual, change these to your posstgres credentials
-        String username = " ";
-        String password = " ";
-        String url = "jdbc:postgresql://localhost:5432/ssh";
+    private static void scheduleChores(String username, String password, String url, int id) {
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
