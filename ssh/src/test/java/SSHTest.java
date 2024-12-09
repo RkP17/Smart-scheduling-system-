@@ -16,9 +16,10 @@ import org.junit.jupiter.api.Test;
 
 public class SSHTest {
 
-    String username = " ";
-    String password = " ";
-    String url = "jdbc:postgresql://localhost:5432/ssh";
+    //Used for  setting up the JDBC connection, put your own username & password for this
+    private final String username = " ";
+    private final String password = " ";
+    private final String url = "jdbc:postgresql://localhost:5432/ssh";
 
     //Testing the database
     @Test
