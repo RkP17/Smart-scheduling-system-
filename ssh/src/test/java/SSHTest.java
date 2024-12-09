@@ -16,10 +16,15 @@ import org.junit.jupiter.api.Test;
 
 public class SSHTest {
 
+    //Used for  setting up the JDBC connection, put your own username & password for this
+    private final String username = " ";
+    private final String password = " ";
+    private final String url = "jdbc:postgresql://localhost:5432/ssh";
+
     //Testing the database
     @Test
     public void testDatabase(){
-        List<Map<String, Object>> result = SSH.Database(0);
+        List<Map<String, Object>> result = SSH.Database(username, password, url, 0);
         LocalDateTime time = (LocalDateTime) result.get(0).get("timestamp");
         LocalDateTime expected = LocalDateTime.parse("2024-11-18T07:30");
         assertEquals(expected, time);
@@ -51,7 +56,7 @@ public class SSHTest {
 
     @Test
     public void testPresenceMatrices(){
-        List<Map<String, Object>> result = SSH.Database(2);
+        List<Map<String, Object>> result = SSH.Database(username, password, url, 2);
         List<int[][]> presenceMatrices = SSH.cleanData(result);
 
         //Below is an expected presence matrix of student 2 for the week starting 18/11/24

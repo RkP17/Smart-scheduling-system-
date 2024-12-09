@@ -10,11 +10,15 @@ import java.time.temporal.ChronoUnit;
 public class SSH{
     public static void main(String[] args) {
 
-        //Database
+        //Used for  setting up the JDBC connection, put your own username & password for this
+        String username = " ";
+        String password = " ";
+        String url = "jdbc:postgresql://localhost:5432/ssh";
 
+        //Database
         //The line below is what I used to test the code
-        int student_id = 1;
-        List<Map<String, Object>> rawRecords = Database(student_id);
+        int student_id = 0;
+        List<Map<String, Object>> rawRecords = Database(username, password, url, student_id);
 
         //Process the data
         List<int[][]> presenceMatrices = cleanData(rawRecords);
@@ -25,15 +29,15 @@ public class SSH{
         //printProbabilityMatrix(probabilities);
 
         //store the data 
-        storeProbabilities(student_id, probabilities);
+        storeProbabilities(username, password, url, student_id, probabilities);
 
         //schedule chores
-        scheduleChores(student_id);
+        scheduleChores(username, password, url, student_id);
 
     }
 
     // SQL statements for the database (If we want to do it through here rather than the terminal)
-    public static List<Map<String, Object>> Database(int id) {
+    public static List<Map<String, Object>> Database(String username, String password, String url, int id) {
         //Query to get up to 8 weeks worth of data, calculated by subtracting 8 weeks from most recent record
         String query = "WITH latest_date AS (" +
                 "    SELECT MAX(timestamp_attr) AS recent_time " +
@@ -54,11 +58,6 @@ public class SSH{
                 "ORDER BY timestamp_attr";
 
         List<Map<String, Object>> records = new ArrayList<>();
-
-        //Seeting up the JDBC connection, put your own password for this
-        String username = " ";
-        String password = " ";
-        String url = "jdbc:postgresql://localhost:5432/ssh";
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
@@ -260,12 +259,7 @@ public class SSH{
         statement.executeUpdate();
     }
 
-    private static void storeProbabilities(int studentId, double[][] probabilities) {
-        // JDBC connection
-        String username = " ";
-        String password = " ";
-        String url = "jdbc:postgresql://localhost:5432/ssh";
-
+    private static void storeProbabilities(String username, String password, String url, int studentId, double[][] probabilities) {
 
         String droppHomequery = "DROP TABLE probability_home";
         String createpHomequery = "CREATE TABLE public.probability_home ( " +
@@ -352,11 +346,7 @@ public class SSH{
         }
     }
 
-    private static void scheduleChores(int id) {
-        //As usual, change these to your posstgres credentials
-        String username = " ";
-        String password = " ";
-        String url = "jdbc:postgresql://localhost:5432/ssh";
+    private static void scheduleChores(String username, String password, String url, int id) {
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
@@ -423,19 +413,66 @@ public class SSH{
                                     " )";
                             PreparedStatement statement3 = connection.prepareStatement(findEligibleTimeslotQuery);
                             statement3.setInt(1,id);
+
                             try (ResultSet eligbileTimeslotResult = statement3.executeQuery()) {
 
                                 //Find the first timeslot when the student is most likely to be home.
                                 /*In the future we may add a feature where if the currect time is past
                                 the recommended timeslot, the next best timeslot is suggested */
-                                long highestProbability = 0;
+                                int top3id[] = {-1,-1,-1};
+                                float top3prob[] = {-1,-1,-1};
+                                String best_time = "";
                                 int probability_id = -1;
+                                float probability;
                                 String timeslot_start = "";
                                 while (eligbileTimeslotResult.next()) {
-                                    if (eligbileTimeslotResult.getLong("probability") > highestProbability) {
-                                        highestProbability = eligbileTimeslotResult.getLong("probability");
-                                        probability_id = eligbileTimeslotResult.getInt("probability_id");
-                                        timeslot_start = eligbileTimeslotResult.getString("timeslot_start");
+
+                                    probability_id = eligbileTimeslotResult.getInt("probability_id");
+                                    timeslot_start = eligbileTimeslotResult.getString("timeslot_start");
+                                    probability = eligbileTimeslotResult.getFloat("probability");
+                                    /*  Below is used for tracing the contents of the array
+                                    System.out.println("Current probability id ? " + probability_id);
+                                    System.out.println("Current probability is: " + probability + ", current state of top3id is: " + top3id[0] + "," + top3id[1] + "," + top3id[2] +  ", current state of top3prob is: " + top3prob[0] + "," + top3prob[1] + "," + top3prob[2]);
+                                    */
+                                    if (probability > top3prob[0]) {
+                                        best_time = timeslot_start;
+
+                                        //System.out.println(top3id[0]);
+                                        //System.out.println("Current probability_id not in if statement: " + probability_id);
+                                        if (top3id[0] == -1) {
+                                            top3id[0] = probability_id;
+                                            top3prob[0] = probability;
+                                            //System.out.println("current probability_id: " + probability_id);
+                                            //System.out.println("top3id[0]: " + top3id[0]);
+                                        } else if (top3id[1] == -1) {
+                                            top3id[1] = top3id[0];
+                                            top3id[0] = probability_id;
+                                            top3prob[1] = top3prob[0];
+                                            top3prob[0] = probability;
+                                            //System.out.println("current probability_id: " + probability_id);
+                                            //System.out.println("top3id[0]: " + top3id[0]);
+                                            //System.out.println("top3id[1]: " + top3id[1]);
+                                        } else {
+                                            top3id[2] = top3id[1];
+                                            top3id[1] = top3id[0];
+                                            top3id[0] = probability_id;
+                                            top3prob[2] = top3prob[1];
+                                            top3prob[1] = top3prob[0];
+                                            top3prob[0] = probability;
+                                            //System.out.println("current probability_id: " + probability_id);
+                                            //System.out.println("top3id[0]: " + top3id[0]);
+                                            //System.out.println("top3id[1]: " + top3id[1]);
+                                            //System.out.println("top3id[2]: " + top3id[2]);
+                                        }
+                                    } else if (probability > top3prob[1]) {
+                                        top3id[2] = top3id[1];
+                                        top3id[1] = probability_id;
+                                        top3prob[2] = top3prob[1];
+                                        top3prob[1] = probability;
+
+                                    } else if (probability > top3prob[2]) {
+                                        top3id[2] = probability_id;
+                                        top3prob[2] = probability;
                                     }
                                 }
                                 if (probability_id != -1) {
@@ -443,7 +480,38 @@ public class SSH{
                                     System.out.println(highestProbability);
                                     System.out.println(probability_id);
                                     System.out.println(timeslot_start);*/
-                                    System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + timeslot_start);
+                                    System.out.println("The best timeslot for student " + id + " to " + chores +  " on " + weekdayAttr + " is " + best_time);
+                                    Scanner myScanner = new Scanner(System.in);
+                                    System.out.println("Want to see more timeslots? Y/N ");
+                                    String yn = myScanner.nextLine();
+                                    if(yn.equals("Y")) {
+                                        String getNext2 = "SELECT timeslot_start FROM probability_home " +
+                                                "WHERE probability_id = ? " +
+                                                "OR probability_id = ? ";
+                                        PreparedStatement statement4 = connection.prepareStatement(getNext2);
+                                        //System.out.println("probability_id 2: " + top3id[1]);
+                                        //System.out.println("probability_id 3: " + top3id[2]);
+                                        statement4.setInt(1,top3id[1]);
+                                        statement4.setInt(2,top3id[2]);
+
+                                        try(ResultSet next2Result = statement4.executeQuery()) {
+                                            String[] next2timeslots = {"",""};
+                                            while (next2Result.next()) {
+                                                //System.out.println(next2Result.getString("timeslot_start"));
+                                                if (next2timeslots[0].equals("")){
+                                                    next2timeslots[0] = next2Result.getString("timeslot_start");
+                                                } else {
+                                                    next2timeslots[1] = next2Result.getString("timeslot_start");
+                                                }
+                                            }
+                                            if (next2timeslots[0].equals("") || next2timeslots[1].equals("")) {
+                                                System.out.println("There was an error getting the next best timeslots.");
+                                            } else {
+                                                System.out.println("The next two best timeslots are " + next2timeslots[0] + " and " + next2timeslots[1] + ", with a probability of " + top3prob[1] + " and " + top3prob[2] + " respectively.");
+                                            }
+                                        }
+                                    }
+
                                 } else {
                                     //This will only be reached when probability_home is incorrectly generated.
                                     System.out.println("Could not find the best time for student " + id + " to do their chores.");

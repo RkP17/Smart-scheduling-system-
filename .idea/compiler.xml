@@ -7,9 +7,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="ssh (2)" />
-        <module name="ssh" />
         <module name="ssh (1)" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ssh" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
