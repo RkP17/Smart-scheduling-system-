@@ -10,11 +10,23 @@ import org.junit.jupiter.api.Test;
 
 public class SSHIntegrationTest {
 
+<<<<<<< Updated upstream
+=======
+    // JDBC connection
+    private final String username = " ";
+    private final String password = " ";
+    private final String url = "jdbc:postgresql://localhost:5432/ssh";
+
+>>>>>>> Stashed changes
     @Test
     public void integrationTest1() {
         // verifying if correct probabilities are being stored for student id = 2 for monday
 
+<<<<<<< Updated upstream
         List<Map<String, Object>> rawRecords = SSH.Database(2);
+=======
+        List<Map<String, Object>> rawRecords = SSH.Database(username,password, url,2);
+>>>>>>> Stashed changes
 
         // process the data
         List<int[][]> presenceMatrices = SSH.cleanData(rawRecords);
@@ -23,12 +35,16 @@ public class SSHIntegrationTest {
         double[][] probabilities = SSH. calculate(presenceMatrices);
 
         // store the data
+<<<<<<< Updated upstream
         SSH.storeProbabilities(2, probabilities);
 
         // query the database to verify probabilities were stored correctly
         String username = " ";
         String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
+=======
+        SSH.storeProbabilities(username, password, url, 2, probabilities);
+>>>>>>> Stashed changes
 
         try (Connection conn = DriverManager.getConnection(url, username, password);
              PreparedStatement pstmt = conn.prepareStatement(
@@ -68,7 +84,11 @@ public class SSHIntegrationTest {
     public void integrationTest2() {
         // verifying if correct probabilities are being stored for student id = 4 for friday
 
+<<<<<<< Updated upstream
         List<Map<String, Object>> rawRecords = SSH.Database(4);
+=======
+        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url, 4);
+>>>>>>> Stashed changes
 
         // process the data
         List<int[][]> presenceMatrices = SSH.cleanData(rawRecords);
@@ -77,12 +97,16 @@ public class SSHIntegrationTest {
         double[][] probabilities = SSH. calculate(presenceMatrices);
 
         // store the data
+<<<<<<< Updated upstream
         SSH.storeProbabilities(4, probabilities);
 
         // query the database to verify probabilities were stored correctly
         String username = " ";
         String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
+=======
+        SSH.storeProbabilities(username, password, url, 4, probabilities);
+>>>>>>> Stashed changes
 
         try (Connection conn = DriverManager.getConnection(url, username, password);
              PreparedStatement pstmt = conn.prepareStatement(
@@ -122,7 +146,11 @@ public class SSHIntegrationTest {
     public void integrationTest3() {
         // verifying if correct probabilities are being stored for student id = 0 for tuesday
 
+<<<<<<< Updated upstream
         List<Map<String, Object>> rawRecords = SSH.Database(0);
+=======
+        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url,0);
+>>>>>>> Stashed changes
 
         // process the data
         List<int[][]> presenceMatrices = SSH.cleanData(rawRecords);
@@ -131,12 +159,16 @@ public class SSHIntegrationTest {
         double[][] probabilities = SSH. calculate(presenceMatrices);
 
         // store the data
+<<<<<<< Updated upstream
         SSH.storeProbabilities(0, probabilities);
 
         // query the database to verify probabilities were stored correctly
         String username = " ";
         String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
+=======
+        SSH.storeProbabilities(username, password, url,0, probabilities);
+>>>>>>> Stashed changes
 
         try (Connection conn = DriverManager.getConnection(url, username, password);
              PreparedStatement pstmt = conn.prepareStatement(

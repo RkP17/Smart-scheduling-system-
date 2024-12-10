@@ -260,12 +260,16 @@ public class SSH{
         statement.executeUpdate();
     }
 
+<<<<<<< Updated upstream
     public static void storeProbabilities(int studentId, double[][] probabilities) {
         // JDBC connection
         String username = " ";
         String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
+=======
+    public static void storeProbabilities(String username, String password, String url, int studentId, double[][] probabilities) {
+>>>>>>> Stashed changes
 
         String droppHomequery = "DROP TABLE probability_home";
         String createpHomequery = "CREATE TABLE public.probability_home ( " +
@@ -352,11 +356,15 @@ public class SSH{
         }
     }
 
+<<<<<<< Updated upstream
     private static void scheduleChores(int id) {
         //As usual, change these to your posstgres credentials
         String username = " ";
         String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
+=======
+    public static void scheduleChores(String username, String password, String url, int id) {
+>>>>>>> Stashed changes
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
