@@ -1,12 +1,14 @@
 import ssh.example.SSH;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.sql.*;
-
-import org.junit.jupiter.api.Test;
 
 public class SSHIntegrationTest {
 
