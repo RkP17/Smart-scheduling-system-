@@ -161,4 +161,54 @@ public class SSHIntegrationTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void integrationTest4() {
+        // to check chores for student id = 0 for tuesday
+
+        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url,0);
+
+        // process the data
+        List<int[][]> presenceMatrices = SSH.cleanData(rawRecords);
+
+        // calculate the probability
+        double[][] probabilities = SSH. calculate(presenceMatrices);
+
+        // store the data
+        SSH.storeProbabilities(username, password, url,0, probabilities);
+
+        // capture output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+
+        // call the method under test
+        SSH.scheduleChores(username, password, url, 0);
+
+        // get the output
+        String output = outputStream.toString();
+
+        // validate the output
+        String expectedOutput = """
+        The best timeslot for student 0 to laundry on Tuesday is 19:00:00
+        Want to see more timeslots? Y/N 
+        """;
+        assertTrue(output.contains(expectedOutput));
+
+        // checking the next best timeslots if user chooses 'Y'
+        outputStream.reset();
+
+        // simulate user input for "Y"
+        System.setIn(new ByteArrayInputStream("Y".getBytes()));
+
+        // call the method again to check additional timeslots
+        SSH.scheduleChores(username, password, url, 0);
+        output = outputStream.toString();
+
+        // validate the additional timeslot output
+        String nextBestTimeslots = "The next two best timeslots are 17:00:00 and 20:00:00, with a probability of 0.75 and 0.5 respectively.";
+        assertTrue(output.contains(nextBestTimeslots));
+
+        System.setOut(System.out);
+        System.setIn(System.in);
+    }
 }
