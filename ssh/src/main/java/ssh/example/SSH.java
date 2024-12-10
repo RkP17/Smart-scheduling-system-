@@ -259,7 +259,7 @@ public class SSH{
         statement.executeUpdate();
     }
 
-    private static void storeProbabilities(String username, String password, String url, int studentId, double[][] probabilities) {
+    public static void storeProbabilities(String username, String password, String url, int studentId, double[][] probabilities) {
 
         String droppHomequery = "DROP TABLE probability_home";
         String createpHomequery = "CREATE TABLE public.probability_home ( " +
@@ -346,7 +346,7 @@ public class SSH{
         }
     }
 
-    private static void scheduleChores(String username, String password, String url, int id) {
+    public static void scheduleChores(String username, String password, String url, int id) {
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
