@@ -1,4 +1,5 @@
 import ssh.example.SSH;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -166,6 +167,9 @@ public class SSHIntegrationTest {
 
     @Test
     public void integrationTest4() {
+        // Set up initial input
+        System.setIn(new ByteArrayInputStream("N\n".getBytes()));
+
         // to check chores for student id = 0 for tuesday
 
         List<Map<String, Object>> rawRecords = SSH.Database(username, password, url,0);
@@ -190,17 +194,14 @@ public class SSHIntegrationTest {
         String output = outputStream.toString();
 
         // validate the output
-        String expectedOutput = """
-        The best timeslot for student 0 to laundry on Tuesday is 19:00:00
-        Want to see more timeslots? Y/N 
-        """;
+        String expectedOutput = "The best timeslot for student 0 to laundry on Tuesday is 19:00:00\r\nWant to see more timeslots? Y/N \r\n";
         assertTrue(output.contains(expectedOutput));
 
         // checking the next best timeslots if user chooses 'Y'
         outputStream.reset();
 
         // simulate user input for "Y"
-        System.setIn(new ByteArrayInputStream("Y".getBytes()));
+        System.setIn(new ByteArrayInputStream("Y\n".getBytes()));
 
         // call the method again to check additional timeslots
         SSH.scheduleChores(username, password, url, 0);
