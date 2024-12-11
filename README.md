@@ -1,3 +1,6 @@
+# Smart Scheduling System
+By Fatima,Ma'any,Rajveer,Thu
+
 Before running the code in "ssh/src/main/java/ssh/example/ssh.java", the ssh database needs to be created on the local machine.
 Download "Smart-scheduling-system-/ssh.sql" (this contains a pg_dump of the database)
 Run the following commands in the terminal:
