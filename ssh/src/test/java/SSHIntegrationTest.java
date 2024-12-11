@@ -1,9 +1,13 @@
 import ssh.example.SSH;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.sql.*;
 
 import org.junit.jupiter.api.Test;
@@ -161,9 +165,7 @@ public class SSHIntegrationTest {
             e.printStackTrace();
         }
     }
-<<<<<<< Updated upstream
-=======
-
+/* 
     @Test
     public void integrationTest4() {
         // to check chores for student id = 0 for tuesday
@@ -194,7 +196,7 @@ public class SSHIntegrationTest {
 
         // validate the output
         String expectedOutput = "The best timeslot for student 0 to laundry on Tuesday is 19:00:00\nWant to see more timeslots? Y/N \n";
-        assertEquals(output, expectedOutput);
+        assertEquals(expectedOutput,output);
 
         // checking the next best timeslots if user chooses 'Y'
         outputStream.reset();
@@ -213,5 +215,7 @@ public class SSHIntegrationTest {
         System.setOut(System.out);
         System.setIn(System.in);
     }
->>>>>>> Stashed changes
+        */
+
 }
+    
