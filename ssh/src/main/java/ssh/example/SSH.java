@@ -18,6 +18,7 @@ public class SSH{
         //Database
         //The line below is what I used to test the code
         int student_id = 0;
+        String weekday = "Monday";
         List<Map<String, Object>> rawRecords = Database(username, password, url, student_id);
 
         //Process the data
@@ -29,10 +30,10 @@ public class SSH{
         //printProbabilityMatrix(probabilities);
 
         //store the data 
-        storeProbabilities(username, password, url, student_id, probabilities);
+        storeProbabilities(username, password, url, student_id, probabilities, weekday);
 
         //schedule chores
-        scheduleChores(username, password, url, student_id);
+        scheduleChores(username, password, url, student_id, weekday);
 
     }
 
@@ -259,7 +260,7 @@ public class SSH{
         statement.executeUpdate();
     }
 
-    public static void storeProbabilities(String username, String password, String url, int studentId, double[][] probabilities) {
+    public static void storeProbabilities(String username, String password, String url, int studentId, double[][] probabilities, String weekdayAttr) {
 
         String droppHomequery = "DROP TABLE probability_home";
         String createpHomequery = "CREATE TABLE public.probability_home ( " +
@@ -302,7 +303,7 @@ public class SSH{
             // iterate over each day
             for (int day = 0; day < 7; day++) {
                 // map the day index onto corresponding weekday
-                String weekdayAttr = DayOfWeek.of(day + 1).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(day + 1).toString().substring(1).toLowerCase();
+                //String weekdayAttr = DayOfWeek.of(day + 1).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(day + 1).toString().substring(1).toLowerCase();
 
                 int startHour = -1; // hour at which current time block starts
                 int slotCounter = 0; // counter for the number of consecutive slots with the same probability
@@ -346,7 +347,7 @@ public class SSH{
         }
     }
 
-    public static void scheduleChores(String username, String password, String url, int id) {
+    public static void scheduleChores(String username, String password, String url, int id, String weekdayAttr) {
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
@@ -360,7 +361,7 @@ public class SSH{
                     //System.out.println(dayInt); //print the dayInt value, for testing purposes
 
                     //Convert the dayInt value into the corresponding String (Monday, Tuesday, etc)
-                    String weekdayAttr = DayOfWeek.of(dayInt).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(dayInt).toString().substring(1).toLowerCase();
+                    //String weekdayAttr = DayOfWeek.of(dayInt).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(dayInt).toString().substring(1).toLowerCase();
                     //System.out.println(weekdayAttr); //print the weekday for testing purposes
 
                     //Step 2: Find out what chores the student has today
