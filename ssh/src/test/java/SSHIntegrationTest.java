@@ -126,7 +126,7 @@ public class SSHIntegrationTest {
         double[][] probabilities = SSH. calculate(presenceMatrices);
 
         // store the data
-        SSH.storeProbabilities(username, password, url,0, probabilities);
+        SSH.storeProbabilities(username, password, url,0, probabilities, "Tuesday");
 
         try (Connection conn = DriverManager.getConnection(url, username, password);
              PreparedStatement pstmt = conn.prepareStatement(
@@ -161,8 +161,6 @@ public class SSHIntegrationTest {
             e.printStackTrace();
         }
     }
-<<<<<<< Updated upstream
-=======
 
     @Test
     public void integrationTest4() {
@@ -180,14 +178,14 @@ public class SSHIntegrationTest {
         double[][] probabilities = SSH. calculate(presenceMatrices);
 
         // store the data
-        SSH.storeProbabilities(username, password, url,0, probabilities);
+        SSH.storeProbabilities(username, password, url,0, probabilities, "Tuesday");
 
         // capture output
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputStream));
 
         // call the method under test
-        SSH.scheduleChores(username, password, url, 0);
+        SSH.scheduleChores(username, password, url, 0, "Tuesday");
 
         // get the output
         String output = outputStream.toString();
@@ -213,5 +211,4 @@ public class SSHIntegrationTest {
         System.setOut(System.out);
         System.setIn(System.in);
     }
->>>>>>> Stashed changes
 }
