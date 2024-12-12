@@ -11,14 +11,14 @@ public class SSH{
     public static void main(String[] args) {
 
         //Used for  setting up the JDBC connection, put your own username & password for this
-        String username = "postgres";
-        String password = "kittycat5";
+        String username = " ";
+        String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
         //Database
         //The line below is what I used to test the code
-        int student_id = 0;
-        String weekdayAttr = "Tuesday";
+        int student_id = 3;
+        String weekdayAttr = "Thursday";
         List<Map<String, Object>> rawRecords = Database(username, password, url, student_id);
 
         //Process the data

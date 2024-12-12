@@ -34,7 +34,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -44,7 +43,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <Main-Class>ssh.example.SSH</Main-Class>
+                            <Main-Class>ssh.example.SSH</Main-Class> <!-- Your Main Class -->
                         </manifest>
                     </archive>
                 </configuration>
