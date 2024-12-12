@@ -18,21 +18,22 @@ public class SSH{
         //Database
         //The line below is what I used to test the code
         int student_id = 0;
+        String weekdayAttr = "Tuesday";
         List<Map<String, Object>> rawRecords = Database(username, password, url, student_id);
 
         //Process the data
         List<int[][]> presenceMatrices = cleanData(rawRecords);
-        
+
 
         //Calculate the probability
         double[][] probabilities=calculate(presenceMatrices);
         //printProbabilityMatrix(probabilities);
 
-        //store the data 
+        //store the data
         storeProbabilities(username, password, url, student_id, probabilities);
 
         //schedule chores
-        scheduleChores(username, password, url, student_id);
+        scheduleChores(username, password, url, student_id, weekdayAttr);
 
     }
 
@@ -141,13 +142,13 @@ public class SSH{
                 entryTime = minutes;
                 day = dayOfWeek;
 
-            //When exit is detected
+                //When exit is detected
             } else if ("exit".equalsIgnoreCase(action)) {
                 //If there is no previous entry time, assume the entry belongs to the previous day and start from 00:00
                 if(entryTime == null){
                     markPresence(presenceMatrix, dayOfWeek, 0, minutes);
 
-                //If there is a previous entry time
+                    //If there is a previous entry time
                 } else {
                     if(day == dayOfWeek) {
                         //Case where enter and exit occur on the same day
@@ -220,16 +221,16 @@ public class SSH{
             }
         }
 
-        //convert into probabilities 
+        //convert into probabilities
         for (int day=0;day<7;day++){
             for(int hour=0; hour<24;hour++){
-                //probability= sum/num of weeks 
+                //probability= sum/num of weeks
                 probabilities[day][hour]/= numWeeks;
             }
         }
 
         return probabilities;
-        
+
 
     }
 
@@ -239,7 +240,7 @@ public class SSH{
         for (int day = 0; day < 7; day++) {
             System.out.print("Day " + (day + 1) + ": ");
             for (int hour = 0; hour < 24; hour++) {
-                System.out.print(probabilities[day][hour]); 
+                System.out.print(probabilities[day][hour]);
             }
             System.out.println();
         }
@@ -294,10 +295,10 @@ public class SSH{
 
             try (Statement stmt = connection.createStatement();
                  ResultSet rs = stmt.executeQuery("SELECT COALESCE(MAX(probability_id), 0) FROM public.probability_home")) {
-                    if (rs.next()) {
+                if (rs.next()) {
                     probabilityId = rs.getInt(1) + 1; // start from the next ID
-                    }
-                 }
+                }
+            }
 
             // iterate over each day
             for (int day = 0; day < 7; day++) {
@@ -346,7 +347,7 @@ public class SSH{
         }
     }
 
-    public static void scheduleChores(String username, String password, String url, int id) {
+    public static void scheduleChores(String username, String password, String url, int id, String weekdayAttr) {
 
         try(Connection connection = DriverManager.getConnection(url, username, password)){
 
@@ -360,7 +361,7 @@ public class SSH{
                     //System.out.println(dayInt); //print the dayInt value, for testing purposes
 
                     //Convert the dayInt value into the corresponding String (Monday, Tuesday, etc)
-                    String weekdayAttr = DayOfWeek.of(dayInt).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(dayInt).toString().substring(1).toLowerCase();
+                    //String weekdayAttr = DayOfWeek.of(dayInt).toString().substring(0, 1).toUpperCase() + DayOfWeek.of(dayInt).toString().substring(1).toLowerCase();
                     //System.out.println(weekdayAttr); //print the weekday for testing purposes
 
                     //Step 2: Find out what chores the student has today
@@ -526,3 +527,4 @@ public class SSH{
         }
     }
 }
+

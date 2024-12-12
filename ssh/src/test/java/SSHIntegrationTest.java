@@ -3,6 +3,9 @@ import ssh.example.SSH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.io.ByteArrayInputStream;
@@ -14,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 public class SSHIntegrationTest {
 
-    //Used for  setting up the JDBC connection, put your own username & password for this
+    // JDBC connection
     private final String username = " ";
     private final String password = " ";
     private final String url = "jdbc:postgresql://localhost:5432/ssh";
@@ -53,12 +56,12 @@ public class SSHIntegrationTest {
                         if (rowIndex < probabilities[0].length) {
                             // retrieve pre-calculated probabilities
                             double expectedProbability = probabilities[0][rowIndex];
-                            System.out.println("Row " + rowIndex + ": Expected = " + expectedProbability + ", Actual = " + actualProbability);
+                            //System.out.println("Row " + rowIndex + ": Expected = " + expectedProbability + ", Actual = " + actualProbability);
 
                             assertEquals(expectedProbability, actualProbability, 0.0001);
                             rowIndex++;
                         } else {
-                            System.out.println("No expected probability for Row " + rowIndex);
+                            //System.out.println("No expected probability for Row " + rowIndex);
                         }
                     }
                 }
@@ -102,12 +105,12 @@ public class SSHIntegrationTest {
                         if (rowIndex < probabilities[4].length) {
                             // retrieve pre-calculated probabilities
                             double expectedProbability = probabilities[4][rowIndex];
-                            System.out.println("Row " + rowIndex + ": Expected = " + expectedProbability + ", Actual = " + actualProbability);
+                            //System.out.println("Row " + rowIndex + ": Expected = " + expectedProbability + ", Actual = " + actualProbability);
 
                             assertEquals(expectedProbability, actualProbability, 0.0001);
                             rowIndex++;
                         } else {
-                            System.out.println("No expected probability for Row " + rowIndex);
+                            //System.out.println("No expected probability for Row " + rowIndex);
                         }
                     }
                 }
@@ -151,12 +154,12 @@ public class SSHIntegrationTest {
                         if (rowIndex < probabilities[1].length) {
                             // retrieve pre-calculated probabilities
                             double expectedProbability = probabilities[1][rowIndex];
-                            System.out.println("Row " + rowIndex + ": Expected = " + expectedProbability + ", Actual = " + actualProbability);
+                            //System.out.println("Row " + rowIndex + ": Expected = " + expectedProbability + ", Actual = " + actualProbability);
 
                             assertEquals(expectedProbability, actualProbability, 0.0001);
                             rowIndex++;
                         } else {
-                            System.out.println("No expected probability for Row " + rowIndex);
+                            //System.out.println("No expected probability for Row " + rowIndex);
                         }
                     }
                 }
@@ -182,14 +185,14 @@ public class SSHIntegrationTest {
         double[][] probabilities = SSH. calculate(presenceMatrices);
 
         // store the data
-        SSH.storeProbabilities(username, password, url,0, probabilities);
+        SSH.storeProbabilities(username, password, url, 0, probabilities);
 
         // capture output
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputStream));
 
         // call the method under test
-        SSH.scheduleChores(username, password, url, 0);
+        SSH.scheduleChores(username, password, url, 0, "Tuesday");
 
         // get the output
         String output = outputStream.toString();
@@ -205,7 +208,7 @@ public class SSHIntegrationTest {
         System.setIn(new ByteArrayInputStream("Y\n".getBytes()));
 
         // call the method again to check additional timeslots
-        SSH.scheduleChores(username, password, url, 0);
+        SSH.scheduleChores(username, password, url, 0, "Tuesday");
         output = outputStream.toString();
 
         // validate the additional timeslot output
@@ -215,5 +218,4 @@ public class SSHIntegrationTest {
         System.setOut(System.out);
         System.setIn(System.in);
     }
-        
 }
