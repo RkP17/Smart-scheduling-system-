@@ -17,8 +17,8 @@ public class SSH{
 
         //Database
         //The line below is what I used to test the code
-        int student_id = 0;
-        String weekdayAttr = "Tuesday";
+        int student_id = 3;
+        String weekdayAttr = "Thursday";
         List<Map<String, Object>> rawRecords = Database(username, password, url, student_id);
 
         //Process the data
@@ -527,6 +527,4 @@ public class SSH{
         }
     }
 }
-
-
 

@@ -8,6 +8,9 @@ import java.io.ByteArrayInputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.sql.*;
 
 import org.junit.jupiter.api.Test;
@@ -23,13 +26,13 @@ public class SSHIntegrationTest {
     public void integrationTest1() {
         // verifying if correct probabilities are being stored for student id = 2 for monday
 
-        List<Map<String, Object>> rawRecords = SSH.Database(username,password, url,2);
+        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url, 2);
 
         // process the data
         List<int[][]> presenceMatrices = SSH.cleanData(rawRecords);
 
         // calculate the probability
-        double[][] probabilities = SSH. calculate(presenceMatrices);
+        double[][] probabilities = SSH.calculate(presenceMatrices);
 
         // store the data
         SSH.storeProbabilities(username, password, url, 2, probabilities);
@@ -72,16 +75,16 @@ public class SSHIntegrationTest {
     public void integrationTest2() {
         // verifying if correct probabilities are being stored for student id = 4 for friday
 
-        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url,4);
+        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url, 4);
 
         // process the data
         List<int[][]> presenceMatrices = SSH.cleanData(rawRecords);
 
         // calculate the probability
-        double[][] probabilities = SSH. calculate(presenceMatrices);
+        double[][] probabilities = SSH.calculate(presenceMatrices);
 
         // store the data
-        SSH.storeProbabilities(username, password, url,4, probabilities);
+        SSH.storeProbabilities(username, password, url, 4, probabilities);
 
         try (Connection conn = DriverManager.getConnection(url, username, password);
              PreparedStatement pstmt = conn.prepareStatement(
@@ -121,16 +124,16 @@ public class SSHIntegrationTest {
     public void integrationTest3() {
         // verifying if correct probabilities are being stored for student id = 0 for tuesday
 
-        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url,0);
+        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url, 0);
 
         // process the data
         List<int[][]> presenceMatrices = SSH.cleanData(rawRecords);
 
         // calculate the probability
-        double[][] probabilities = SSH. calculate(presenceMatrices);
+        double[][] probabilities = SSH.calculate(presenceMatrices);
 
         // store the data
-        SSH.storeProbabilities(username, password, url,0, probabilities);
+        SSH.storeProbabilities(username, password, url, 0, probabilities);
 
         try (Connection conn = DriverManager.getConnection(url, username, password);
              PreparedStatement pstmt = conn.prepareStatement(
@@ -173,13 +176,13 @@ public class SSHIntegrationTest {
         // Set up initial input
         System.setIn(new ByteArrayInputStream("N\n".getBytes()));
 
-        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url,0);
+        List<Map<String, Object>> rawRecords = SSH.Database(username, password, url, 0);
 
         // process the data
         List<int[][]> presenceMatrices = SSH.cleanData(rawRecords);
 
         // calculate the probability
-        double[][] probabilities = SSH. calculate(presenceMatrices);
+        double[][] probabilities = SSH.calculate(presenceMatrices);
 
         // store the data
         SSH.storeProbabilities(username, password, url, 0, probabilities);
@@ -196,7 +199,7 @@ public class SSHIntegrationTest {
 
         // validate the output
         String expectedOutput = "The best timeslot for student 0 to laundry on Tuesday is 19:00:00\nWant to see more timeslots? Y/N \n";
-        assertEquals(output, expectedOutput);
+        assertEquals(expectedOutput, output);
 
         // checking the next best timeslots if user chooses 'Y'
         outputStream.reset();
@@ -215,5 +218,4 @@ public class SSHIntegrationTest {
         System.setOut(System.out);
         System.setIn(System.in);
     }
-
 }

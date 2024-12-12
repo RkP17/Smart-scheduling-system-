@@ -106,7 +106,6 @@ public class SSHTest {
 
         
     }
-
     @Test
     public void testCalculate_mulitpleWeek(){
 
