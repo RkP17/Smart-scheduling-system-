@@ -11,8 +11,8 @@ public class SSH{
     public static void main(String[] args) {
 
         //Used for  setting up the JDBC connection, put your own username & password for this
-        String username = "rajveerpatter";
-        String password = "password";
+        String username = " ";
+        String password = " ";
         String url = "jdbc:postgresql://localhost:5432/ssh";
 
         //Database
