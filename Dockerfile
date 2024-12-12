@@ -16,4 +16,8 @@ WORKDIR /app
 COPY --from=builder /app/target/ssh-1.0-SNAPSHOT.jar app.jar
 
 # Run the application
+<<<<<<< Updated upstream
 CMD ["java", "-jar", "app.jar"]
+=======
+CMD ["java", "-jar", "ssh-1.0-SNAPSHOT.jar"]
+>>>>>>> Stashed changes

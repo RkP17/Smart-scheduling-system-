@@ -17,8 +17,8 @@ import org.junit.jupiter.api.Test;
 public class SSHTest {
 
     //Used for  setting up the JDBC connection, put your own username & password for this
-    private final String username = " ";
-    private final String password = " ";
+    private final String username = "rajveerpatter";
+    private final String password = "password";
     private final String url = "jdbc:postgresql://localhost:5432/ssh";
 
     //Testing the database
@@ -106,7 +106,6 @@ public class SSHTest {
 
         
     }
-
     @Test
     public void testCalculate_mulitpleWeek(){
 

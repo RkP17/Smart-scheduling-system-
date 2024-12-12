@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 public class SSHIntegrationTest {
 
     //Used for  setting up the JDBC connection, put your own username & password for this
-    private final String username = " ";
-    private final String password = " ";
+    private final String username = "rajveerpatter";
+    private final String password = "password";
     private final String url = "jdbc:postgresql://localhost:5432/ssh";
 
     @Test
@@ -165,7 +165,12 @@ public class SSHIntegrationTest {
             e.printStackTrace();
         }
     }
+<<<<<<< Updated upstream
 /* 
+=======
+
+    /* 
+>>>>>>> Stashed changes
     @Test
     public void integrationTest4() {
         // to check chores for student id = 0 for tuesday
@@ -216,6 +221,10 @@ public class SSHIntegrationTest {
         System.setIn(System.in);
     }
         */
+<<<<<<< Updated upstream
 
 }
     
+=======
+}
+>>>>>>> Stashed changes
